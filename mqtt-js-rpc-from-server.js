@@ -1,3 +1,5 @@
+process.env.TOKEN = 'xMvVEmhpVjVrDSJDWnyI';
+
 var mqtt = require('mqtt');
 var client  = mqtt.connect('mqtt://thingsboard.cloud',{
     username: process.env.TOKEN
