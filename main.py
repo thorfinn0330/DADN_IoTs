@@ -1,4 +1,3 @@
-import serial.tools.list_ports
 import paho.mqtt.client as mqttclient
 import time
 import json
@@ -6,8 +5,14 @@ import random
 
 BROKER_ADDRESS = "thingsboard.cloud"
 PORT = 1883
-THINGS_BOARD_ACCESS_TOKEN = "xMvVEmhpVjVrDSJDWnyI"
-
+THINGS_BOARD_ACCESS_TOKEN = "lak1ggZFUwCBsrdEMrcP"
+entry_dict = {
+    "temperature": "",
+    "humidity": "",
+    "co2": "",
+    "occupancy":"",
+    "tvoc":""
+}
 print("here")
 
 def setMode(value):
@@ -90,66 +95,68 @@ def connected(client, usedata, flags, rc):
 
     else:
         print("Connection is failed")
+def send(client, temp, hum, lux):
+    
+    
 
 
-client = mqttclient.Client("Gateway_Thingsboard")
-client.username_pw_set(THINGS_BOARD_ACCESS_TOKEN)
-
-client.on_connect = connected
-client.connect(BROKER_ADDRESS, 1883)
-client.loop_start()
-
-client.on_subscribe = subscribed
-client.on_message = recv_message
-
-entry_dict = {
-    "temperature": "",
-    "humidity": "",
-    "intensity": "",
-}
-control_dict = {
-    "Led1_state": "",
-    "Led2_state": "",
-    "Fan1_state": "",
-    "Fan2_state": "",
-}
-setMode(False)
-print("INNIT", autoMode)
-highTemp=0
-while True:
-    print("/------", autoMode, "------/")
-    temp = random.randint(200,800)/10
-    hum = random.randint(0,100)
-    lux = random.randint(0,100)
+    
 
     entry_dict["temperature"] = temp
     entry_dict["humidity"] = hum
-    entry_dict["intensity"] = lux
+    entry_dict["occupancy"] = lux
+    entry_dict["co2"] = temp+30
+    entry_dict["tvoc"] = hum*1.5
     
     print(json.dumps(entry_dict))
-    if(autoMode):
-        #High Temperature -> turn on Fan
-        if(temp > 40):
-            highTemp+=1
-            if(highTemp >= 3):
-                control_dict["Fan1_state"] = True
-            else:   
-                control_dict["Fan1_state"] = False
-                highTemp =0
-
-        #Low Intensity -> turn on Led
-        if(lux < 50):
-            #turn on led1
-            control_dict["Led1_state"] = True
-        else:
-            #turn off led1
-            control_dict["Led1_state"] = False
-
-
-    # Automatic in gateway
     client.publish("v1/devices/me/telemetry", json.dumps(entry_dict))
-    client.publish("v1/devices/me/attributes", json.dumps(control_dict))
 
-    print(temp, " | ", hum, "|", lux)
 
-    time.sleep(5)
+def sensors_connect():
+    client = mqttclient.Client("Gateway_Thingsboard")
+    client.username_pw_set(THINGS_BOARD_ACCESS_TOKEN)
+
+    client.on_connect = connected
+    client.connect(BROKER_ADDRESS, 1883)
+    return client
+
+# while True:
+    
+#     print("/------", autoMode, "------/")
+#     temp = random.randint(200,800)/10
+#     hum = random.randint(0,100)
+#     lux = random.randint(0,100)
+
+#     entry_dict["temperature"] = temp
+#     entry_dict["humidity"] = hum
+#     entry_dict["occupancy"] = lux
+#     entry_dict["co2"] = temp+30
+#     entry_dict["tvoc"] = hum*1.5
+    
+#     print(json.dumps(entry_dict))
+#     if(autoMode):
+#         #High Temperature -> turn on Fan
+#         if(temp > 40):
+#             highTemp+=1
+#             if(highTemp >= 3):
+#                 control_dict["Fan1_state"] = True
+#             else:   
+#                 control_dict["Fan1_state"] = False
+#                 highTemp =0
+
+#         #Low Intensity -> turn on Led
+#         if(lux < 50):
+#             #turn on led1
+#             control_dict["Led1_state"] = True
+#         else:
+#             #turn off led1
+#             control_dict["Led1_state"] = False
+
+
+#     # Automatic in gateway
+#     client.publish("v1/devices/me/telemetry", json.dumps(entry_dict))
+#     print(json.dumps(control_dict));
+
+#     print(temp, " | ", hum, "|", lux)
+
+#     time.sleep(15)
